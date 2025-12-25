@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"os"
 )
@@ -39,6 +40,22 @@ func handleConnection(conn net.Conn) {
 
 	reader := bufio.NewReader(conn)
 	for {
-		reader.ReadBytes(byte('\n'))
+		bytes, err := reader.ReadBytes(byte('\n'))
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println("Failed to read data, err:", err)
+			}
+			return
+		}
+		fmt.Printf("request: %s", bytes)
+		line := fmt.Sprintf("Echo: %s", bytes)
+		fmt.Printf("Response: %s", line)
+
+		_, err = conn.Write([]byte(line))
+		if err != nil {
+			fmt.Println("Failed to write data, err:", err)
+			return
+		}
+
 	}
 }
